@@ -34,27 +34,30 @@ export default function Home() {
     loadFiles()
   }, [])
 
-  async function uploadFiles(
-    e: React.ChangeEvent<HTMLInputElement>
-  ) {
-    const selected = e.target.files
+async function uploadFiles(e: React.ChangeEvent<HTMLInputElement>) {
+  const selected = e.target.files
+  if (!selected) return
 
-    if (!selected) return
+  setUploading(true)
 
-    setUploading(true)
+  const filesArray = Array.from(selected)
 
-    for (const file of Array.from(selected)) {
-      const fileName = `${crypto.randomUUID()}-${file.name}`
+  for (const file of filesArray) {
+    const fileId = crypto.randomUUID()
+    const fileName = `${fileId}-${file.name}`
 
+    try {
+      // 1. Upload to storage
       const { error: uploadError } = await supabase.storage
         .from("uploads")
         .upload(fileName, file)
 
       if (uploadError) {
-        console.error(uploadError)
+        console.error("Upload error:", uploadError)
         continue
       }
 
+      // 2. Save metadata
       const { error: dbError } = await supabase
         .from("media")
         .insert({
@@ -64,15 +67,18 @@ export default function Home() {
         })
 
       if (dbError) {
-        console.error(dbError)
+        console.error("DB error:", dbError)
       }
+
+    } catch (err) {
+      console.error("Unexpected error:", err)
     }
-
-    await loadFiles()
-    setUploading(false)
-
-    e.target.value = ""
   }
+
+  await loadFiles()
+  setUploading(false)
+  e.target.value = ""
+}
 
   return (
     <main
