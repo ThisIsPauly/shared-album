@@ -135,7 +135,7 @@ export default function Home() {
       </div>
 
       {/* Gallery */}
-      <h2 style={{ marginBottom: "15px" }}>Latest Memories</h2>
+      <h2 style={{ marginBottom: "15px" }}></h2>
 
       {files.length === 0 && (
         <p style={{ color: "#888" }}>
